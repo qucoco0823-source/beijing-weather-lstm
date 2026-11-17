@@ -4,14 +4,17 @@ const d=window.LSTM_DATA,base=window.BEIJING_DATA,$=id=>document.getElementById(
 if(!d){$('lstm-status').textContent='LSTM训练尚未完成，请完成训练后刷新。';return;}
 const m=d.metrics,model=d.model,score=m.scores;
 $('mae').textContent=score.lstm.MAE.toFixed(2);
-$('improvement').textContent=((1-score.lstm.MAE/score.persistence.MAE)*100).toFixed(1)+'%';
-$('baseline-mae').textContent=score.persistence.MAE.toFixed(2);
 $('test-note').textContent=`${m.test_start.replace('T',' ')} — ${m.test_end.replace('T',' ')}；${m.evaluated_hours}个相同有效时刻比较三种方法。`;
 $('score-table').innerHTML=[['LSTM',score.lstm],['线性回归',score.linear],['沿用当前气温',score.persistence]].map(([name,s])=>`<tr><td>${name}</td><td>${s.MAE.toFixed(3)}</td><td>${s.RMSE.toFixed(3)}</td><td>${s.R2.toFixed(4)}</td></tr>`).join('');
-$('feature-note').textContent=`LSTM读取过去${model.window}小时温度序列：1层、${model.hidden_size}个隐藏单元，预测下一小时温差。线性回归与沿用当前气温在同一批时刻作为对照。`;
-$('lstm-status').textContent=`验证选择${m.selected_epochs}轮后，在完整训练期重训。相同测试样本下，${score.lstm.MAE<score.linear.MAE?'LSTM平均误差低于线性回归':'LSTM平均误差未优于线性回归'}；效果以实际数字为准。`;
-$('audit').innerHTML+=`<p class="small">上面的基础缺测统计来自线性流程。LSTM需要完整24小时窗口，同条件对比实际评价${m.evaluated_hours}小时，${m.excluded_hours}小时因缺测不评价。</p>`;
-$('lstm-split').textContent=`归一化统计只拟合到${model.scaler_fit_end.replace('T',' ')}。验证选轮数后，在截止${model.training_end.replace('T',' ')}的完整训练期重训；测试期不参与选轮数。`;
+$('lstm-split').textContent=`训练期：2013-03-01 00:00至${model.training_end.replace('T',' ')}；测试期：${m.test_start.replace('T',' ')}至${m.test_end.replace('T',' ')}。`;
+$('lstm-status').textContent=`训练期内部按时间划分拟合与验证，验证选择${m.selected_epochs}轮后在完整训练期重训。标准化统计只使用截至${model.scaler_fit_end.replace('T',' ')}的早期拟合段；测试期不参与训练或选轮数。`;
+const linearGain=(1-score.lstm.MAE/score.linear.MAE)*100,baselineGain=(1-score.lstm.MAE/score.persistence.MAE)*100;
+$('score-finding').textContent=`LSTM平均误差为${score.lstm.MAE.toFixed(3)}℃，较线性回归降低${linearGain.toFixed(1)}%，较沿用上一小时气温降低${baselineGain.toFixed(1)}%。`;
+const errors=d.predictions.filter(r=>r.fair_evaluation).map(r=>Math.abs(r.actual-r.lstm_prediction)).sort((a,b)=>a-b);
+const percentile95=errors[Math.ceil(errors.length*.95)-1],maximum=errors.at(-1);
+$('error-finding').textContent=`平均误差不代表每次误差：95%的有效测试时刻误差不超过${percentile95.toFixed(2)}℃，最大误差为${maximum.toFixed(2)}℃，突变时仍有较大偏差。`;
+$('training-detail').textContent=`最多训练${m.max_epochs}轮，验证误差连续${m.patience}轮未改善则停止；本次选择${m.selected_epochs}轮。曲线来自训练期内部验证，未使用测试期选轮数。`;
+$('project-conclusion').textContent=`本站气温呈现季节与日内变化，相邻小时具有较强连续性。在本次历史测试中，LSTM相较线性回归的MAE降低${linearGain.toFixed(1)}%，相较沿用上一小时降低${baselineGain.toFixed(1)}%；大误差时刻仍需保留并分析。`;
 function drawComparison(){
  const rows=$('range').value==='all'?d.predictions:d.predictions.slice(0,168),W=1100,H=310,L=50,R=15,T=15,B=40;
  const numbers=rows.flatMap(r=>[r.actual,r.lstm_prediction,r.linear_prediction,r.persistence]).filter(v=>v!==null&&Number.isFinite(v));
@@ -47,7 +50,7 @@ let loaded=null,computed=null;
 function clearReplay(){loaded=null;computed=null;$('lstm-result').textContent='—';$('lstm-actual').textContent='尚未揭晓';$('lstm-error').textContent='';}
 function loadSequence(){
  clearReplay();const timestamp=$('lstm-when').value;
- if(!$('lstm-when').validity.valid||timestamp<base.model.data_start||timestamp>base.model.data_end){$('lstm-error').textContent='请选择数据范围内的历史整点时刻。';return;}
+ if(!$('lstm-when').validity.valid||timestamp<m.test_start||timestamp>m.test_end||!timestamp.endsWith(':00')){$('lstm-error').textContent='请选择测试期内的历史整点时刻。';return;}
  try{
   loaded={timestamp,...sequenceAt(timestamp)};
   $('lstm-history').textContent=`${iso(Date.parse(timestamp+'Z')-24*3600000).replace('T',' ')} 至 ${iso(Date.parse(timestamp+'Z')-3600000).replace('T',' ')}；共24个已知气温，最后为${loaded.temperatures.at(-1).toFixed(2)}℃。`;

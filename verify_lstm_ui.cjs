@@ -3,7 +3,7 @@ const ids=[...fs.readFileSync('index.html','utf8').matchAll(/id="([^"]+)"/g)].ma
 assert.equal(ids.length,new Set(ids).size,'Duplicate HTML IDs');
 const elements=Object.fromEntries(ids.map(id=>[id,{value:'',textContent:'',innerHTML:'',validity:{valid:true},handlers:{},classList:{toggle(){}},addEventListener(name,fn){this.handlers[name]=fn;}}]));
 const context=vm.createContext({console,window:{scrollTo(){}},document:{getElementById:id=>elements[id],querySelectorAll:()=>[]}});
-for(const file of ['outputs/demo-data.js','app.js','outputs/lstm/demo-data.js','lstm-runtime.js','lstm-ui.js'])vm.runInContext(fs.readFileSync(file,'utf8'),context);
+for(const file of ['outputs/demo-data.js','outputs/lstm/demo-data.js','app.js','lstm-runtime.js','lstm-ui.js'])vm.runInContext(fs.readFileSync(file,'utf8'),context);
 const lstm=context.window.LSTM_DATA;
 const valid=lstm.predictions.filter(r=>r.lstm_prediction!==null);
 for(let i=0;i<40;i++){

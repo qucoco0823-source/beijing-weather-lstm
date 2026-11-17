@@ -1,20 +1,21 @@
 const fs=require('node:fs'),vm=require('node:vm'),assert=require('node:assert/strict');
 process.chdir(__dirname);
-const ids=[...fs.readFileSync('index.html','utf8').matchAll(/id="([^"]+)"/g)].map(m=>m[1]);
-const elements=Object.fromEntries(ids.map(id=>[id,{value:'',textContent:'',innerHTML:'',validity:{valid:true},classList:{toggle(){}},addEventListener(){}}]));
-const context=vm.createContext({console,window:{scrollTo(){}},document:{getElementById:id=>elements[id],querySelectorAll:()=>[]}});
-vm.runInContext(fs.readFileSync('outputs/demo-data.js','utf8'),context);
-vm.runInContext(fs.readFileSync('app.js','utf8'),context);
-vm.runInContext(`
-for(const row of data.predictions){if(row.prediction!==null){
- const input=byTime.get(row.timestamp);
- if(Math.abs(estimate(input)-row.prediction)>1e-8)throw Error('Prediction mismatch '+row.timestamp);
-}}
-`,context);
-assert.ok(Number.isFinite(Number(elements.estimate.textContent)));
-for(let i=0;i<4;i++){vm.runInContext(`showPlot(${i})`,context);assert.ok(fs.existsSync(elements.plot.src));}
-elements.range.value='all';vm.runInContext('drawChart()',context);
-assert.ok(elements.chart.innerHTML.includes('7013小时'));
-elements.when.value='2026-11-17T18:00';vm.runInContext('update()',context);
-assert.equal(elements.estimate.textContent,'—');
-console.log('PASS: browser predictions match all available Python forecasts; date validation and chart assets checked.');
+const html=fs.readFileSync('index.html','utf8');
+const ids=[...html.matchAll(/id="([^"]+)"/g)].map(m=>m[1]);
+assert.equal(ids.length,new Set(ids).size);
+const elements=Object.fromEntries(ids.map(id=>[id,{id,value:'',textContent:'',innerHTML:'',validity:{valid:true},handlers:{},active:false,classList:{toggle(name,value){elements[id].active=value;}},addEventListener(event,fn){this.handlers[event]=fn;}}]));
+const buttons=['source','clean','explore','predict'].map(screen=>({dataset:{screen},handlers:{},classList:{toggle(){}},addEventListener(event,fn){this.handlers[event]=fn;}}));
+const context=vm.createContext({console,window:{scrollTo(){}},document:{getElementById:id=>{assert.ok(elements[id],`Missing DOM ID: ${id}`);return elements[id];},querySelectorAll:selector=>selector==='[data-screen]'?buttons:selector==='.screen'?buttons.map(b=>elements[b.dataset.screen]):[]}});
+for(const file of ['outputs/demo-data.js','outputs/lstm/demo-data.js','app.js','lstm-runtime.js','lstm-ui.js'])vm.runInContext(fs.readFileSync(file,'utf8'),context);
+const actual=context.window.COURSE_STATS,expected=JSON.parse(fs.readFileSync('outputs/course-analysis.json','utf8'));
+for(const group of ['monthly','hourly','rainMonthly'])expected[group].forEach((row,i)=>{assert.ok(Math.abs(row.value-actual[group][i].value)<1e-9,`${group} ${i}: Python/JS mismatch`);assert.equal(actual[group][i].count,row.count);});
+assert.ok(Math.abs(actual.lagCorrelation-expected.lagCorrelation)<1e-12);
+assert.equal(actual.filledCount,expected.filledCount);assert.equal(actual.firstMissing,expected.firstMissing);assert.equal(actual.rangeViolations,0);
+for(const button of buttons){button.handlers.click();assert.ok(elements[button.dataset.screen].active);assert.equal(buttons.filter(b=>elements[b.dataset.screen].active).length,1);}
+assert.ok(!html.includes('LSTM方法'));assert.ok(html.includes('id="source" class="screen active"'));
+assert.ok(elements['clean-example'].innerHTML.includes('NA'));assert.ok(elements['clean-example'].innerHTML.includes('不填补，不评价'));
+const input=elements['lstm-when'];input.value='2015-01-01T00:00';input.handlers.change();assert.ok(elements['lstm-error'].textContent.includes('测试期'));
+input.value='2016-05-12T19:30';input.handlers.change();assert.ok(elements['lstm-error'].textContent.includes('整点'));
+for(const id of ['monthly-finding','hourly-finding','rain-finding','error-finding'])assert.ok(!/undefined|NaN/.test(elements[id].textContent));
+console.log('PASS: four-section navigation; 48 Python/JS aggregation groups, counts, correlation and cleaning agree; replay rejects training/partial-hour inputs.');
+console.log(JSON.stringify({monthly:elements['monthly-finding'].textContent,hourly:elements['hourly-finding'].textContent,rain:elements['rain-finding'].textContent,errors:elements['error-finding'].textContent,missingExampleRows:(elements['clean-example'].innerHTML.match(/<tr>/g)||[]).length},null,2));

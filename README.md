@@ -1,10 +1,12 @@
 # 北京天气分析与LSTM下一小时气温预测
 
-课程项目初始版本：实际天气记录 → 清洗检查 → 历史分析 → LSTM训练 → 公平评估 → 交互演示。
+数据处理方向课程项目：数据来源与概况 → 清洗与质量检查 → 探索性分析与可视化 → 进阶预测。
+网页按课程汇报顺序组织，预测作为数据分析的延伸。
 
 ## 在线演示
 
-本仓库根目录是静态网站。GitHub Pages 启用后可以直接分享网页链接。
+[打开在线演示](https://qucoco0823-source.github.io/beijing-weather-lstm/)。
+本仓库根目录是静态网站。
 浏览器读取导出的真实网络权重并完成预测；GitHub Pages 不执行 Python 训练。
 打开 index.html 也可以离线查看，不需要账号和密钥。
 
@@ -15,12 +17,13 @@
 ```sh
 python -m pip install -r requirements.txt
 python main.py
+python analyze_weather.py
 python train_lstm.py
 python verify_lstm.py
 python predict_lstm.py
 ```
 
-main.py 生成线性对照及图表；train_lstm.py 训练 LSTM，并更新页面所用数据和模型权重。
+main.py 生成线性对照及图表；analyze_weather.py 从原始CSV复算清洗及探索统计；train_lstm.py 训练 LSTM，并更新页面所用数据和模型权重。
 网页数值检查可运行 `node verify_lstm_ui.cjs`。
 
 ## 当前结果
