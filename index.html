@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>北京官园站天气数据分析 · 课程作业</title><link rel="stylesheet" href="style.css"></head><body>
+<html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>北京官园站天气数据分析 · 课程作业</title><link rel="stylesheet" href="style.css?v=course2"></head><body>
 <header><div class="brand">北京官园站天气数据分析<span>Python课程作业 · 数据处理方向</span></div><button id="fullscreen" class="quiet">全屏展示</button></header>
 <nav aria-label="作业展示顺序"><button class="active" data-screen="source">01 数据来源</button><button data-screen="clean">02 数据清洗</button><button data-screen="explore">03 探索分析</button><button data-screen="predict">04 进阶预测</button></nav><main>
 <section id="source" class="screen active"><div class="section-title"><span>01 / 数据来源与概况</span><h1>北京官园站的天气有哪些变化规律？</h1><p>分析季节与日内变化，再检验过去24小时气温能否帮助预测下一小时。</p></div>
@@ -25,4 +25,4 @@
 <details><summary>补充材料：训练记录与误差分布</summary><p id="training-detail"></p><img class="plot-img" src="outputs/lstm/01_训练曲线.png" alt="训练期内部的训练与验证曲线" loading="lazy"><img class="plot-img" src="outputs/lstm/03_误差分布.png" alt="LSTM测试期误差分布" loading="lazy"></details>
 <article class="conclusion"><h2>结论与局限</h2><p id="project-conclusion"></p><p>当前结论适用于本站历史数据的一小时预测。单站记录和一次时间留出检验，尚不足以说明其他城市、当前天气或更长预测时段的效果。</p></article></section></main>
 <footer>数据：Chen, S. (2017) · UCI Beijing Multi-Site Air Quality · DOI:10.24432/C5RK5G · <a href="https://creativecommons.org/licenses/by/4.0/">CC BY 4.0</a>。本站使用官园站天气字段并生成统计与预测结果。</footer>
-<script src="outputs/demo-data.js"></script><script src="outputs/lstm/demo-data.js"></script><script src="app.js"></script><script src="lstm-runtime.js"></script><script src="lstm-ui.js"></script></body></html>
+<script src="outputs/demo-data.js"></script><script src="outputs/lstm/demo-data.js"></script><script src="app.js?v=course2"></script><script src="lstm-runtime.js"></script><script src="lstm-ui.js?v=course2"></script></body></html>
