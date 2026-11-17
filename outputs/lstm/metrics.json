@@ -1,0 +1,40 @@
+{
+  "scores": {
+    "lstm": {
+      "hours": 6947,
+      "MAE": 0.5528076473808503,
+      "RMSE": 0.8247837841862538,
+      "R2": 0.9954495888484629
+    },
+    "linear": {
+      "hours": 6947,
+      "MAE": 0.6092150031060743,
+      "RMSE": 0.8871063914813758,
+      "R2": 0.9947359279130085
+    },
+    "persistence": {
+      "hours": 6947,
+      "MAE": 0.8411271052252771,
+      "RMSE": 1.151186344762666,
+      "R2": 0.9911353484281831
+    }
+  },
+  "evaluated_hours": 6947,
+  "test_hours": 7013,
+  "excluded_hours": 66,
+  "window": 24,
+  "hidden_size": 32,
+  "selected_epochs": 16,
+  "max_epochs": 30,
+  "patience": 6,
+  "validation_best_mae": 0.5636680722236633,
+  "fit_windows": 28025,
+  "elapsed_seconds": 25.058607299928553,
+  "training_end": "2016-05-12T18:00",
+  "validation_start": "2015-09-22T00:00",
+  "test_start": "2016-05-12T19:00",
+  "test_end": "2017-02-28T23:00",
+  "forecast_mode": "rolling_one_hour_ahead",
+  "torch_version": "2.10.0+cpu",
+  "device": "cpu"
+}
