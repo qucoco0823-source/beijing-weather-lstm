@@ -1,4 +1,4 @@
 __pycache__/
-.matplotlib/
 .venv/
 *.pyc
+data/raw_html/

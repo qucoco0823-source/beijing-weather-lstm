@@ -2,3 +2,4 @@
 :is(#monthly-chart,#hourly-chart,#rain-chart,#chart){overflow-x:auto}
 :is(#monthly-chart,#hourly-chart,#rain-chart,#chart) .chart{min-width:740px}
 .chart text{font-size:16px}
+:is(#category-chart,#season-chart){overflow-x:auto}:is(#category-chart,#season-chart) .chart{min-width:740px}

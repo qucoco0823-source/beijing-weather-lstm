@@ -1,58 +1,46 @@
-# 北京天气分析与LSTM下一小时气温预测
+# 北京天气自主采集、分类分析与气温预测
 
-数据处理方向课程项目：数据来源与概况 → 清洗与质量检查 → 探索性分析与可视化 → 进阶预测。
-网页按课程汇报顺序组织，预测作为数据分析的延伸。
+本版本的主流程全部使用自主采集的网页记录：请求月份HTML、解析每日表格、清洗去重、信息分类、探索分析，再训练下一天最高气温模型。
 
-## 在线演示
+## 数据来源
 
-[打开在线演示](https://qucoco0823-source.github.io/beijing-weather-lstm/)。
-本仓库根目录是静态网站。
-浏览器读取导出的真实网络权重并完成预测；GitHub Pages 不执行 Python 训练。
-打开 index.html 也可以离线查看，不需要账号和密钥。
+- 来源：天气后报北京历史天气公开月份网页，https://www.tianqihoubao.com/lishi/beijing.html 。
+- 采集范围：2021年1月至2025年12月，共60个月份网页。
+- 网站说明数据源于城市当天的天气预报信息。本项目处理的是网站历史归档，不将它称作独立气象实测。
+- 原始HTML及SHA-256保存在data/raw_html和data/crawl_manifest.json，逐请求日志在data/crawl_log.jsonl。
+- 采集器使用urllib和HTMLParser，不是自动下载现成CSV。不执行网页脚本，不使用登录账户或密钥，不绕过拒绝访问和限流。
+- robots规则页实际返回406，程序记录该响应。仅低频串行读取公开月份页。若收到401、403或429会停止。
 
-## 运行与复现
+## 运行
 
-使用支持 PyTorch 的 Python 环境，在仓库目录执行：
+在安装依赖的Python环境下，从本目录执行：
 
 ```sh
 python -m pip install -r requirements.txt
-python main.py
-python analyze_weather.py
-python train_lstm.py
-python verify_lstm.py
-python predict_lstm.py
+python crawl_weather.py
+python clean_analyze.py
+python train_models.py
 ```
 
-main.py 生成线性对照及图表；analyze_weather.py 从原始CSV复算清洗及探索统计；train_lstm.py 训练 LSTM，并更新页面所用数据和模型权重。
-网页数值检查可运行 `node verify_lstm_ui.cjs`。
+已有缓存时复用HTML。只有需要重新发出月份请求时才加 `--refresh`。如本机网络需要代理，可传 `--proxy http://127.0.0.1:7890`，程序不把代理写进数据。
 
-## 当前结果
+打开index.html查看离线演示。重新训练只读本项目data/crawled_raw.csv，不读取以前下载的数据集。
 
-同一批 6947 个有效测试时刻：
+## 文件与作用
 
-| 方法 | MAE（℃） | RMSE（℃） |
-| --- | ---: | ---: |
-| LSTM | 0.553 | 0.825 |
-| 线性回归 | 0.609 | 0.887 |
-| 沿用前1小时气温 | 0.841 | 1.151 |
+- crawl_weather.py：按年月采集、缓存原始HTML、解析weather-table、校验日历日期、保存原始行与来源。
+- clean_analyze.py：原文保留、重复核查、温度拆分、范围检查、天气分类、月份和季节统计。
+- train_models.py：历史7天特征、按年份切分、岭回归、浅随机森林与单层LSTM、共同测试集评价、模型导出。
+- outputs/metrics.json：验证选择依据、实际测试指标和数据边界。
+- outputs/models.json及模型文件：真实训练结果，浏览器使用相同参数计算。
+- verify_ui.cjs：逐个比对三种模型在测试年所有有效日期的网页推理，核查原始网页摘要和分类总数，检查未来目标不影响输入。
 
-单层 LSTM、32 个隐藏单元，读取此前24小时，预测下一小时温差。
-时间顺序划分训练和测试，训练内部验证选择轮数；测试期不参与选轮数。
-这是使用此前实际观测的逐小时历史回放，不是实时天气服务，也不代表一次性预测数月的效果。
+## 统计与预测口径
 
-## 文件
+分类是确定的文字规则，一天归入一个类别；雨、雪标记另行统计。网页没有降水毫米数，不生成降水量结论。
+2021—2023年拟合，2024年验证选择模型和LSTM轮数，在2021—2024年重训，2025年整年测试。标准化统计只使用拟合段。
+目标是下一天的网页最高气温。模型只读取目标之前的记录，真实目标不补。评价逐日使用此前已归档记录，不是一次连续预测未来全年。
 
-- index.html、style.css、app.js、lstm-runtime.js、lstm-ui.js：演示界面和浏览器推理。
-- main.py、weather_model.py：数据清洗、分析和线性对照。
-- train_lstm.py、lstm_model.py：真实 LSTM 训练与序列构建。
-- outputs/lstm：权重、训练记录、指标、预测明细和图表。
-- data/original_stations：官园站原始数据，保留缺测记录。
+这是课程中的单网站历史归档分析，不是实时天气预报服务。
 
-## 数据来源与许可
-
-Chen, S. (2017). Beijing Multi-Site Air Quality [Dataset]. UCI Machine Learning Repository.
-DOI: [10.24432/C5RK5G](https://doi.org/10.24432/C5RK5G)。
-[官方数据页面](https://archive.ics.uci.edu/dataset/501/beijing+multi+site+air+quality+data)。
-数据依据 [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/) 使用。
-本项目选择官园站 2013-03-01 至 2017-02-28 的天气字段，派生出清洗记录、图表和预测结果；不使用污染物预测天气。
-原始文件来自公开数据集，不包含本地账号、密码或密钥。
+在线演示：https://qucoco0823-source.github.io/beijing-weather-lstm/

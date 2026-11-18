@@ -1,45 +1,83 @@
 {
-  "station": "北京官园站",
-  "unit": "℃",
-  "audit": {
-    "原始小时数": 35064,
-    "重复时刻": 0,
-    "小时缺口": 0,
-    "缺失数量": {
-      "TEMP": 20,
-      "PRES": 20,
-      "DEWP": 20,
-      "RAIN": 20,
-      "WSPM": 14,
-      "wd": 81
+  "selected_model": "lstm",
+  "selection_rule": "只按2024年验证MAE选择，模型与设置在查看2025年测试成绩前固定",
+  "fit_period": "2021-01-01至2023-12-31",
+  "validation_period": "2024-01-01至2024-12-31",
+  "refit_period": "2021-01-01至2024-12-31",
+  "test_period": "2025-01-01至2025-12-31",
+  "test_calendar_days": 365,
+  "evaluated_days": 365,
+  "excluded_test_days": 0,
+  "window_days": 7,
+  "lstm_epochs": 16,
+  "validation_scores": {
+    "ridge": {
+      "MAE": 2.1909093830463298,
+      "RMSE": 2.826183813950468,
+      "R2": 0.93435776757661,
+      "days": 366
     },
-    "处理": "不填补真实预测目标；输入先仅向前沿用最多3小时，再用每个训练子集的中位数填补剩余辅助输入；前1小时气温仍缺失时不预测。"
-  },
-  "train_hours": 28051,
-  "test_hours": 7013,
-  "fit_hours": 28025,
-  "evaluated_hours": 6993,
-  "excluded_hours": 20,
-  "scores": {
-    "forecast": {
-      "hours": 6993,
-      "MAE": 0.6091576866275756,
-      "RMSE": 0.8867271148869207,
-      "R2": 0.9947522796239403
+    "forest": {
+      "MAE": 2.176046610846804,
+      "RMSE": 2.8338421732702397,
+      "R2": 0.9340015324858845,
+      "days": 366
+    },
+    "lstm": {
+      "MAE": 2.113024857991294,
+      "RMSE": 2.803099377951278,
+      "R2": 0.9354257273597537,
+      "days": 366
     },
     "persistence": {
-      "hours": 6993,
-      "MAE": 0.8385471185471185,
-      "RMSE": 1.1483989854505,
-      "R2": 0.9911981024679157
+      "MAE": 2.3360655737704916,
+      "RMSE": 3.1523258825739062,
+      "R2": 0.9183333485687867,
+      "days": 366
     }
   },
-  "validation_mean_mae": {
-    "temperature": 0.6572728572247949,
-    "weather": 0.6672843181359509
+  "scores": {
+    "ridge": {
+      "MAE": 2.3015137539096644,
+      "RMSE": 2.9390710887208975,
+      "R2": 0.9305690249844045,
+      "days": 365
+    },
+    "forest": {
+      "MAE": 2.3465937208906373,
+      "RMSE": 2.992403366255868,
+      "R2": 0.9280263791142979,
+      "days": 365
+    },
+    "persistence": {
+      "MAE": 2.4821917808219176,
+      "RMSE": 3.2829989631099217,
+      "R2": 0.9133687514049803,
+      "days": 365
+    },
+    "lstm": {
+      "MAE": 2.277743373446371,
+      "RMSE": 2.9499368452776618,
+      "R2": 0.9300547028764429,
+      "days": 365
+    }
   },
-  "selected": "temperature",
-  "test_start": "2016-05-12T19:00",
-  "test_end": "2017-02-28T23:00",
-  "improvement_percent": 27.35558048508795
+  "test_mode": "逐日使用此前已归档记录，预测下一天网页最高气温；不是从起点连续预测一年",
+  "target": "网站历史天气归档中的下一天最高气温；非独立气象实测验证",
+  "feature_columns": [
+    "previous_high",
+    "previous_low",
+    "previous_range",
+    "previous_change",
+    "mean_7",
+    "std_7",
+    "min_7",
+    "max_7",
+    "year_sin",
+    "year_cos",
+    "previous_rain",
+    "previous_snow",
+    "previous_wind"
+  ],
+  "seed": 42
 }

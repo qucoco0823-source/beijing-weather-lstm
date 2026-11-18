@@ -1,0 +1,51 @@
+{
+  "raw_rows": 1832,
+  "clean_rows": 1826,
+  "duplicates_removed": 6,
+  "missing_dates": [],
+  "invalid_temperature_rows": 0,
+  "missing": {
+    "high": 0,
+    "low": 0,
+    "wind_level": 4
+  },
+  "rules": [
+    "日期标准化，移除无冲突的重复日期",
+    "气温字符串拆分并转数值，保留原文",
+    "最高温不得低于最低温，超范围值进入缺测核查",
+    "天气类别按雨雪混合、雪、雨、沙尘、雾霾、阴、多云、晴优先级互斥分类",
+    "描述统计跳过缺测，预测输入和真实目标均不填补，缺少完整7天历史时跳过样本"
+  ],
+  "examples": [
+    {
+      "date_raw": "2021年01月01日",
+      "temperature_raw": "0℃ / -11℃",
+      "high": 0.0,
+      "low": -11.0,
+      "weather_raw": "晴 / 晴",
+      "weather_class": "晴",
+      "wind_day": "南风 1-2级",
+      "wind_level": 2.0
+    },
+    {
+      "date_raw": "2021年01月02日",
+      "temperature_raw": "1℃ / -9℃",
+      "high": 1.0,
+      "low": -9.0,
+      "weather_raw": "晴 / 多云",
+      "weather_class": "多云",
+      "wind_day": "西南风 1-2级",
+      "wind_level": 2.0
+    },
+    {
+      "date_raw": "2021年01月03日",
+      "temperature_raw": "-1℃ / -9℃",
+      "high": -1.0,
+      "low": -9.0,
+      "weather_raw": "多云 / 多云",
+      "weather_class": "多云",
+      "wind_day": "南风 1-2级",
+      "wind_level": 2.0
+    }
+  ]
+}
